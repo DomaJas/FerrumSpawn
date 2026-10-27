@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Messages Archive</title>
+<style>
+:root{
+  --rail:#1e1f22; --side:#2b2d31; --chat:#313338; --hover:#35373c; --active:#404249;
+  --text:#f2f3f5; --muted:#949ba4; --border:#1f2023; --accent:#5865f2;
+  --mention:rgba(88,101,242,.3); --link:#00a8fc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"gg sans","Segoe UI",Helvetica,Arial,sans-serif;background:var(--chat);color:var(--text);font-size:16px;overflow:hidden}
+button,input{font:inherit;color:inherit}
+
+/* drop screen */
+#drop{position:fixed;inset:0;background:var(--chat);display:flex;align-items:center;justify-content:center;z-index:10;padding:24px}
+#drop .box{border:2px dashed var(--muted);border-radius:12px;padding:48px 40px;text-align:center;max-width:520px;width:100%;transition:.15s}
+#drop.over .box{border-color:var(--accent);background:var(--hover)}
+#drop h1{font-size:24px;margin-bottom:10px}
+#drop p{color:var(--muted);margin-bottom:18px;line-height:1.5}
+#drop label{display:inline-block;background:var(--accent);color:#fff;padding:10px 20px;border-radius:4px;cursor:pointer;font-weight:500}
+#drop input{display:none}
+#drop .warn{margin-top:20px;font-size:13px;color:#f0b232}
+
+#app{display:none;height:100%;width:100%}
+
+/* server rail */
+.rail{width:72px;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;flex-shrink:0}
+.srv{width:48px;height:48px;border-radius:24px;background:var(--chat);color:var(--text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:18px;transition:border-radius .15s,background .15s}
+.srv:hover,.srv.on{border-radius:16px;background:var(--accent)}
+
+/* channel sidebar */
+.side{width:240px;background:var(--side);display:flex;flex-direction:column;flex-shrink:0}
+.side-head{height:48px;padding:0 16px;display:flex;align-items:center;font-weight:600;border-bottom:1px solid var(--border);box-shadow:0 1px 0 rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-scroll{flex:1;overflow-y:auto;padding:12px 8px}
+.cat{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;padding:14px 8px 6px;display:flex;justify-content:space-between}
+.ch{display:flex;align-items:center;gap:6px;width:100%;padding:6px 8px;border-radius:4px;background:none;border:0;color:var(--muted);cursor:pointer;text-align:left;font-size:15px}
+.ch:hover{background:var(--hover);color:var(--text)}
+.ch.on{background:var(--active);color:var(--text)}
+.ch .ico{width:20px;text-align:center;opacity:.8;font-size:16px}
+.ch .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch .cnt{font-size:12px;opacity:.6}
+
+/* main */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{height:48px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);box-shadow:0 1px 0 rgba(0,0,0,.2);flex-shrink:0}
+.top .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sep{width:1px;height:24px;background:var(--border)}
+.top .topic{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.search{margin-left:auto;background:var(--rail);border:0;border-radius:4px;padding:5px 8px;width:200px;color:var(--text);outline:none;font-size:14px}
+.search::placeholder{color:var(--muted)}
+.feed{flex:1;overflow-y:auto;padding:16px 0 24px}
+
+.msg{display:flex;gap:16px;padding:2px 48px 2px 16px;margin-top:17px;position:relative}
+.msg:hover{background:rgba(0,0,0,.06)}
+.msg.compact{margin-top:0}
+.msg.compact .ctime{width:40px;flex-shrink:0;font-size:11px;color:var(--muted);opacity:0;text-align:right;padding-top:4px}
+.msg.compact:hover .ctime{opacity:1}
+.msg .mbody{flex:1;min-width:0}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;flex-shrink:0;margin-top:2px;font-size:17px;user-select:none}
+.avatar.sm{width:32px;height:32px;font-size:14px;margin:0}
+.head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.uname{font-weight:500;font-size:16px}
+.time{font-size:12px;color:var(--muted)}
+.content{line-height:1.375;white-space:pre-wrap;word-break:break-word;font-size:16px}
+.content.empty{color:var(--muted);font-style:italic;font-size:14px}
+.content a{color:var(--link);text-decoration:none}
+.content a:hover{text-decoration:underline}
+.mention{background:var(--mention);color:#c9cdfb;padding:0 2px;border-radius:3px;font-weight:500}
+
+.divider{display:flex;align-items:center;margin:20px 16px 4px;color:var(--muted);font-size:12px;font-weight:600}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+.divider span{padding:0 10px}
+.empty-state{text-align:center;color:var(--muted);padding:60px 20px;font-size:15px}
+
+/* members */
+.members{width:240px;background:var(--side);overflow-y:auto;padding:16px 8px;flex-shrink:0}
+.mhead{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;padding:14px 8px 6px}
+.mem{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:4px;font-size:15px}
+.mem:hover{background:var(--hover)}
+.mem span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mem small{color:var(--muted);font-size:12px}
+
+.sres{margin:0 16px 6px;padding:8px 12px;border-radius:6px;cursor:pointer;background:var(--side)}
+.sres:hover{background:var(--hover)}
+.sres-meta{font-size:12px;color:var(--muted);margin-bottom:4px}
+.sres-head{padding:4px 16px 12px;color:var(--muted);font-size:13px;font-weight:600}
+.content mark{background:rgba(240,178,50,.35);color:inherit;border-radius:2px;padding:0 1px}
+.stk{margin-top:6px}
+.sbtn{background:var(--side);border:0;color:var(--text);padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px}
+.sbtn:hover{background:var(--active)}
+.spreview{margin-top:6px}
+.simg{display:block;max-width:300px;max-height:300px;border-radius:6px}
+.serr{color:var(--muted);font-size:13px;font-style:italic}
+.msg.flash{animation:flash 1.8s ease-out}
+@keyframes flash{0%,30%{background:rgba(88,101,242,.28)}100%{background:transparent}}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-thumb{background:#1a1b1e;border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
+
+.menu-btn{display:none;background:none;border:0;font-size:20px;color:var(--muted);cursor:pointer;padding:0 4px;line-height:1}
+.menu-btn:hover{color:var(--text)}
+.icon-btn{background:none;border:0;color:var(--muted);padding:6px;border-radius:4px;cursor:pointer;align-items:center;justify-content:center}
+.icon-btn:hover{color:var(--text);background:var(--hover)}
+.icon-btn.on{color:var(--text)}
+#btnMem{order:10;display:flex;margin-left:4px}
+.members.off{display:none}
+.scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:15}
+.scrim.on{display:block}
+@media (max-width:1100px){
+  .members{position:fixed;right:0;top:0;bottom:0;z-index:20;width:260px;transform:translateX(100%);transition:transform .2s;box-shadow:-4px 0 16px rgba(0,0,0,.4)}
+  .members.open{transform:none}
+  #btnMem{display:inline-block}
+}
+@media (max-width:700px){
+  .rail{width:56px;padding:8px 0;gap:6px}
+  .srv{width:40px;height:40px;font-size:16px;border-radius:20px}
+  .side{position:fixed;left:56px;top:0;bottom:0;z-index:20;width:240px;transform:translateX(calc(-100% - 56px));transition:transform .2s;box-shadow:4px 0 16px rgba(0,0,0,.4)}
+  .side.open{transform:none}
+  #btnSide{display:inline-block}
+  .top{padding:0 10px;gap:8px}
+  .top .sep,.top .topic{display:none}
+  .search{width:auto;flex:1;min-width:0}
+  .msg{padding-left:10px;padding-right:10px;gap:12px}
+  .avatar{width:34px;height:34px}
+  .msg.compact .ctime{width:30px}
+  .sres{margin:0 8px 6px}
+  .simg{max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<div id="drop">
+  <div class="box">
+    <h1>Messages Archive</h1>
+    <p>Перетащи сюда JSON-файл экспорта сервера или выбери его вручную.<br>Файл никуда не загружается — всё открывается локально в браузере.</p>
+    <label>Выбрать файл<input type="file" id="file" accept=".json,application/json"></label>
+    <div class="warn">В архиве могут быть оскорбления, угрозы и разжигание вражды. Перед открытием файла подумай.</div>
+  </div>
+</div>
+
+<div id="app">
+  <nav class="rail"><div class="srv on" id="srvIcon">S</div></nav>
+
+  <aside class="side">
+    <div class="side-head" id="guildName">Сервер</div>
+    <div class="side-scroll" id="channels"></div>
+  </aside>
+
+  <section class="main">
+    <header class="top">
+      <button class="menu-btn" id="btnSide" aria-label="Каналы">☰</button>
+      <button class="icon-btn on" id="btnMem" title="Участники" aria-label="Участники"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></button>
+      <span class="ico" id="chIco" style="color:var(--muted);font-size:20px">#</span>
+      <span class="title" id="chName"></span>
+      <span class="sep"></span>
+      <span class="topic" id="chInfo"></span>
+      <input class="search" id="q" type="search" placeholder="Поиск по всем каналам">
+    </header>
+    <div class="feed" id="feed"></div>
+  </section>
+
+  <aside class="members" id="members"></aside>
+  <div class="scrim" id="scrim"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let guild = null, activeId = null, pendingJump = null;
+
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hue = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const hsl = (s, l) => `hsl(${hue(s)},60%,${l}%)`;
+const pad = n => String(n).padStart(2, '0');
+const fmtTime = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+const fmtDate = d => d ? `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}` : '';
+
+const LINE = /^\[(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2}):(\d{2})\] \[([^\]]+)\] ?([\s\S]*)$/;
+function parse(line) {
+  const m = line.match(LINE);
+  if (!m) return { date: null, user: '?', text: line };
+  return {
+    date: new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]),
+    user: m[7],
+    text: m[8]
+  };
+}
+
+function renderText(t) {
+  let s = esc(t);
+  s = s.replace(/&lt;@&amp;\d+&gt;/g, '<span class="mention">@роль</span>');
+  s = s.replace(/&lt;@!?\d+&gt;/g, '<span class="mention">@участник</span>');
+  s = s.replace(/@(everyone|here)\b/g, '<span class="mention">@$1</span>');
+  s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+  return s;
+}
+
+const isImg = u => /\.(gif|png|jpe?g|webp)(\?\S*)?$/i.test(u) || /cdn\.discordapp\.com\/attachments\//.test(u);
+function stickerBlock(t) {
+  const urls = [...new Set((t.match(/https?:\/\/\S+/g) || []).filter(isImg))];
+  return urls.map(u => `<div class="stk"><button class="sbtn" data-src="${esc(u)}">🖼 Показать стикер</button><div class="spreview" hidden></div></div>`).join('');
+}
+
+function msgHTML(m, compact) {
+  const body = (m.text.trim()
+    ? `<div class="content">${renderText(m.text)}</div>`
+    : `<div class="content empty">[пустое сообщение / вложение]</div>`) + stickerBlock(m.text);
+  if (compact) {
+    return `<div class="msg compact"><span class="ctime">${fmtTime(m.date)}</span><div class="mbody">${body}</div></div>`;
+  }
+  return `<div class="msg">
+    <div class="avatar" style="background:${hsl(m.user, 42)}">${esc(m.user[0].toUpperCase())}</div>
+    <div class="mbody">
+      <div class="head"><span class="uname" style="color:${hsl(m.user, 72)}">${esc(m.user)}</span><span class="time">${fmtDate(m.date)} ${fmtTime(m.date)}</span></div>
+      ${body}
+    </div></div>`;
+}
+
+function renderChannels() {
+  const text = guild.channels.filter(c => c.type === 0);
+  const voice = guild.channels.filter(c => c.type !== 0);
+  const item = c => `<button class="ch ${c.id === activeId ? 'on' : ''}" data-id="${c.id}">
+      <span class="ico">${c.type === 0 ? '#' : '🔊'}</span>
+      <span class="name">${esc(c.name)}</span>
+      <span class="cnt">${c.parsed.length || ''}</span></button>`;
+  let html = '';
+  if (text.length) html += `<div class="cat">Текстовые каналы</div>` + text.map(item).join('');
+  if (voice.length) html += `<div class="cat">Голосовые каналы</div>` + voice.map(item).join('');
+  $('#channels').innerHTML = html;
+  $('#channels').querySelectorAll('.ch').forEach(b => b.onclick = () => openChannel(b.dataset.id));
+}
+
+function renderFeed() {
+  const q = $('#q').value.trim();
+  if (q) return renderSearch(q);
+  renderChannelFeed();
+}
+
+function renderChannelFeed() {
+  const ch = guild.channels.find(c => c.id === activeId);
+  $('#chName').textContent = ch.name;
+  $('#chIco').textContent = ch.type === 0 ? '#' : '🔊';
+  $('#chInfo').textContent = `${ch.parsed.length} сообщений`;
+  const q = '';
+  const list = ch.parsed;
+  let html = '', prevDay = '', prev = null;
+  for (const m of list) {
+    const day = m.date ? m.date.toDateString() : '';
+    if (day !== prevDay) {
+      html += `<div class="divider"><span>${fmtDate(m.date)}</span></div>`;
+      prevDay = day; prev = null;
+    }
+    const compact = prev && m.date && prev.date && prev.user === m.user && (m.date - prev.date) < 7 * 60 * 1000;
+    html += `<div data-mi="${m.idx}">${msgHTML(m, compact)}</div>`;
+    prev = m;
+  }
+  if (!list.length) {
+    html = `<div class="empty-state">${q ? 'Ничего не найдено' : (ch.type !== 0 ? 'Голосовой канал — здесь нет сообщений' : 'В этом канале пока нет сообщений')}</div>`;
+  }
+  $('#feed').innerHTML = html;
+  if (pendingJump !== null) {
+    const el = document.querySelector(`#feed [data-mi="${pendingJump}"]`);
+    pendingJump = null;
+    if (el) { el.scrollIntoView({ block: 'center' }); el.querySelector('.msg').classList.add('flash'); }
+  } else {
+    $('#feed').scrollTop = $('#feed').scrollHeight;
+  }
+}
+
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const hl = (t, q) => esc(t).replace(new RegExp(reEsc(esc(q)), 'gi'), '<mark>$&</mark>');
+
+function renderSearch(q) {
+  const ql = q.toLowerCase();
+  const hits = [];
+  for (const ch of guild.channels) if (ch.type === 0)
+    for (const m of ch.parsed) if ((m.text + ' ' + m.user).toLowerCase().includes(ql)) hits.push({ ch, m });
+  hits.sort((a, b) => (b.m.date || 0) - (a.m.date || 0));
+  const shown = hits.slice(0, 300);
+  $('#chName').textContent = 'Поиск по всем каналам';
+  $('#chIco').textContent = '🔍';
+  $('#chInfo').textContent = `${hits.length} совпадений`;
+  $('#feed').innerHTML =
+    `<div class="sres-head">Найдено: ${hits.length}${hits.length > 300 ? ' (показаны первые 300)' : ''}</div>` +
+    (shown.length ? shown.map(({ ch, m }) => `
+      <div class="sres" data-ch="${ch.id}" data-mi="${m.idx}">
+        <div class="sres-meta"># ${esc(ch.name)} · ${esc(m.user)} · ${fmtDate(m.date)} ${fmtTime(m.date)}</div>
+        <div class="content">${hl(m.text, q)}</div>
+      </div>`).join('') : `<div class="empty-state">Ничего не найдено</div>`);
+  $('#feed').scrollTop = 0;
+  $('#feed').querySelectorAll('.sres').forEach(el => el.onclick = () => {
+    pendingJump = +el.dataset.mi;
+    $('#q').value = '';
+    openChannel(el.dataset.ch);
+  });
+}
+
+function openChannel(id) {
+  activeId = id;
+  const ch = guild.channels.find(c => c.id === id);
+  $('#chName').textContent = ch.name;
+  $('#chIco').textContent = ch.type === 0 ? '#' : '🔊';
+  $('#chInfo').textContent = `${ch.parsed.length} сообщений`;
+  $('#q').value = '';
+  renderChannels();
+  renderFeed();
+}
+
+function renderMembers() {
+  const counts = {};
+  for (const ch of guild.channels) if (ch.type === 0) for (const m of ch.parsed) counts[m.user] = (counts[m.user] || 0) + 1;
+  const users = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  $('#members').innerHTML = `<div class="mhead">Участники — ${users.length}</div>` + users.map(([u, n]) =>
+    `<div class="mem"><div class="avatar sm" style="background:${hsl(u, 42)}">${esc(u[0].toUpperCase())}</div>
+     <span style="color:${hsl(u, 72)}">${esc(u)}</span><small>${n}</small></div>`).join('');
+}
+
+function init() {
+  for (const ch of guild.channels) ch.parsed = (ch.messages || []).map((l, i) => ({ ...parse(l), idx: i }));
+  const name = guild.name || 'Сервер';
+  $('#guildName').textContent = name;
+  $('#srvIcon').textContent = name[0].toUpperCase();
+  $('#drop').style.display = 'none';
+  $('#app').style.display = 'flex';
+  renderMembers();
+  const first = guild.channels.find(c => c.type === 0) || guild.channels[0];
+  openChannel(first.id);
+}
+
+function loadFile(f) {
+  const r = new FileReader();
+  r.onload = () => {
+    try { guild = JSON.parse(r.result); }
+    catch (e) { alert('Не удалось прочитать JSON'); return; }
+    init();
+  };
+  r.readAsText(f);
+}
+
+$('#file').onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+window.addEventListener('dragover', e => { e.preventDefault(); $('#drop').classList.add('over'); });
+window.addEventListener('dragleave', e => { if (!e.relatedTarget) $('#drop').classList.remove('over'); });
+window.addEventListener('drop', e => {
+  e.preventDefault();
+  $('#drop').classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) loadFile(f);
+});
+$('#q').addEventListener('input', () => guild && renderFeed());
+const closePanels = () => {
+  document.querySelector('.side').classList.remove('open');
+  $('#members').classList.remove('open');
+  $('#scrim').classList.remove('on');
+};
+const togglePanel = el => {
+  const open = !el.classList.contains('open');
+  closePanels();
+  if (open) { el.classList.add('open'); $('#scrim').classList.add('on'); }
+};
+$('#btnSide').onclick = () => togglePanel(document.querySelector('.side'));
+const syncMem = () => {
+  const m = $('#members');
+  $('#btnMem').classList.toggle('on', innerWidth > 1100 ? !m.classList.contains('off') : m.classList.contains('open'));
+};
+$('#btnMem').onclick = () => {
+  const m = $('#members');
+  if (innerWidth > 1100) m.classList.toggle('off');
+  else togglePanel(m);
+  syncMem();
+};
+$('#scrim').onclick = () => { closePanels(); syncMem(); };
+$('#channels').addEventListener('click', e => { if (e.target.closest('.ch') && innerWidth <= 700) closePanels(); });
+$('#feed').addEventListener('click', e => {
+  const b = e.target.closest('.sbtn');
+  if (!b) return;
+  const box = b.parentElement.querySelector('.spreview');
+  if (!box.dataset.loaded) {
+    const img = new Image();
+    img.alt = 'стикер'; img.loading = 'lazy'; img.className = 'simg';
+    img.onerror = () => { box.innerHTML = '<div class="serr">Не загрузилось: ссылка устарела или изображение заблокировано</div>'; };
+    img.src = b.dataset.src;
+    box.appendChild(img);
+    box.dataset.loaded = '1';
+  }
+  box.hidden = !box.hidden;
+  b.textContent = box.hidden ? '🖼 Показать стикер' : '🙈 Скрыть стикер';
+});
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && guild) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
+  if (e.key === 'Escape' && document.activeElement === $('#q') && $('#q').value) { $('#q').value = ''; renderFeed(); }
+});
+</script>
+</body>
+</html>
