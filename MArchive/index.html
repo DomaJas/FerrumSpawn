@@ -15,7 +15,6 @@ html,body{height:100%}
 body{font-family:"gg sans","Segoe UI",Helvetica,Arial,sans-serif;background:var(--chat);color:var(--text);font-size:16px;overflow:hidden}
 button,input{font:inherit;color:inherit}
 
-/* drop screen */
 #drop{position:fixed;inset:0;background:var(--chat);display:flex;align-items:center;justify-content:center;z-index:10;padding:24px}
 #drop .box{border:2px dashed var(--muted);border-radius:12px;padding:48px 40px;text-align:center;max-width:520px;width:100%;transition:.15s}
 #drop.over .box{border-color:var(--accent);background:var(--hover)}
@@ -24,15 +23,14 @@ button,input{font:inherit;color:inherit}
 #drop label{display:inline-block;background:var(--accent);color:#fff;padding:10px 20px;border-radius:4px;cursor:pointer;font-weight:500}
 #drop input{display:none}
 #drop .warn{margin-top:20px;font-size:13px;color:#f0b232}
+#autoMsg{font-size:14px;margin-bottom:18px}
 
 #app{display:none;height:100%;width:100%}
 
-/* server rail */
 .rail{width:72px;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;flex-shrink:0}
 .srv{width:48px;height:48px;border-radius:24px;background:var(--chat);color:var(--text);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:18px;transition:border-radius .15s,background .15s}
 .srv:hover,.srv.on{border-radius:16px;background:var(--accent)}
 
-/* channel sidebar */
 .side{width:240px;background:var(--side);display:flex;flex-direction:column;flex-shrink:0}
 .side-head{height:48px;padding:0 16px;display:flex;align-items:center;font-weight:600;border-bottom:1px solid var(--border);box-shadow:0 1px 0 rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .side-scroll{flex:1;overflow-y:auto;padding:12px 8px}
@@ -44,7 +42,6 @@ button,input{font:inherit;color:inherit}
 .ch .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ch .cnt{font-size:12px;opacity:.6}
 
-/* main */
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .top{height:48px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);box-shadow:0 1px 0 rgba(0,0,0,.2);flex-shrink:0}
 .top .title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -60,23 +57,31 @@ button,input{font:inherit;color:inherit}
 .msg.compact .ctime{width:40px;flex-shrink:0;font-size:11px;color:var(--muted);opacity:0;text-align:right;padding-top:4px}
 .msg.compact:hover .ctime{opacity:1}
 .msg .mbody{flex:1;min-width:0}
-.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;flex-shrink:0;margin-top:2px;font-size:17px;user-select:none}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;flex-shrink:0;margin-top:2px;font-size:17px;user-select:none;object-fit:cover}
 .avatar.sm{width:32px;height:32px;font-size:14px;margin:0}
-.head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px;flex-wrap:wrap}
 .uname{font-weight:500;font-size:16px}
+.usub{font-size:12px;color:var(--muted)}
 .time{font-size:12px;color:var(--muted)}
 .content{line-height:1.375;white-space:pre-wrap;word-break:break-word;font-size:16px}
 .content.empty{color:var(--muted);font-style:italic;font-size:14px}
 .content a{color:var(--link);text-decoration:none}
 .content a:hover{text-decoration:underline}
+.edited{color:var(--muted);font-size:11px;margin-left:4px}
 .mention{background:var(--mention);color:#c9cdfb;padding:0 2px;border-radius:3px;font-weight:500}
+
+.att{margin-top:4px}
+.aimg{display:block;max-width:380px;max-height:300px;border-radius:6px}
+.file{display:inline-block;background:var(--side);color:var(--link);padding:6px 10px;border-radius:4px;font-size:14px;text-decoration:none}
+a.file:hover{background:var(--active)}
+.emb{margin-top:4px;font-size:14px}
+.emb a{color:var(--link);text-decoration:none}
 
 .divider{display:flex;align-items:center;margin:20px 16px 4px;color:var(--muted);font-size:12px;font-weight:600}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
 .divider span{padding:0 10px}
 .empty-state{text-align:center;color:var(--muted);padding:60px 20px;font-size:15px}
 
-/* members */
 .members{width:240px;background:var(--side);overflow-y:auto;padding:16px 8px;flex-shrink:0}
 .mhead{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;padding:14px 8px 6px}
 .mem{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:4px;font-size:15px}
@@ -128,7 +133,7 @@ button,input{font:inherit;color:inherit}
   .avatar{width:34px;height:34px}
   .msg.compact .ctime{width:30px}
   .sres{margin:0 8px 6px}
-  .simg{max-width:100%}
+  .simg,.aimg{max-width:100%}
 }
 </style>
 </head>
@@ -137,8 +142,9 @@ button,input{font:inherit;color:inherit}
 <div id="drop">
   <div class="box">
     <h1>Messages Archive</h1>
-    <p>Перетащи сюда JSON-файл экспорта сервера или выбери его вручную.<br>Файл никуда не загружается — всё открывается локально в браузере.</p>
-    <label>Выбрать файл<input type="file" id="file" accept=".json,application/json"></label>
+    <p id="autoMsg">Ищу JSON рядом с index.html…</p>
+    <p>Или перетащи сюда JSON-файл либо выбери вручную.<br>Файл никуда не загружается — всё открывается локально в браузере.</p>
+    <label>Выбрать файл<input type="file" id="file" accept=".json,application/json" multiple></label>
     <div class="warn">В архиве могут быть оскорбления, угрозы и разжигание вражды. Перед открытием файла подумай.</div>
   </div>
 </div>
@@ -172,50 +178,120 @@ button,input{font:inherit;color:inherit}
 const $ = s => document.querySelector(s);
 let guild = null, activeId = null, pendingJump = null;
 
-const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DEFAULTS = ['data.json','archive.json','export.json','messages.json','channel.json','guild.json','server.json'];
+const SKIP = /(^|\/)(package(-lock)?|manifest|tsconfig|composer)\.json$/i;
+const IMG_RE = /\.(png|jpe?g|gif|webp|bmp)$/i, VID_RE = /\.(mp4|webm|mov|mkv)$/i;
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hue = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
 const hsl = (s, l) => `hsl(${hue(s)},60%,${l}%)`;
 const pad = n => String(n).padStart(2, '0');
 const fmtTime = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
 const fmtDate = d => d ? `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}` : '';
+const fmtSize = n => { n = +n || 0; const u = ['Б','КБ','МБ','ГБ']; let i = 0; while (n >= 1024 && i < 3) { n /= 1024; i++; } return (i ? n.toFixed(1) : n) + ' ' + u[i]; };
+const dn = u => u.global_name || u.username || '?';
 
-const LINE = /^\[(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2}):(\d{2})\] \[([^\]]+)\] ?([\s\S]*)$/;
-function parse(line) {
-  const m = line.match(LINE);
-  if (!m) return { date: null, user: '?', text: line };
-  return {
-    date: new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]),
-    user: m[7],
-    text: m[8]
-  };
+function b2u(uri) {
+  if (typeof uri !== 'string' || !uri.startsWith('data:')) return null;
+  const i = uri.indexOf(',');
+  if (i < 0) return null;
+  try {
+    const mime = uri.slice(5, i).split(';')[0] || 'application/octet-stream';
+    const bin = atob(uri.slice(i + 1)), u8 = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k);
+    return URL.createObjectURL(new Blob([u8], { type: mime }));
+  } catch (e) { return null; }
 }
 
-function renderText(t) {
+const LINE = /^\[(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2}):(\d{2})\] \[([^\]]+)\] ?([\s\S]*)$/;
+function parseLine(line, idx) {
+  const m = String(line).match(LINE);
+  const p = m ? { date: new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]), user: m[7], text: m[8] }
+              : { date: null, user: '?', text: String(line) };
+  return { ...p, idx, sub: '', key: p.user, avatar: null, plain: p.text, um: null, edited: false, embeds: [], atts: [] };
+}
+function normGuildChannel(c, fi, i) {
+  return { id: fi + '_' + (c.id ?? i), name: c.name || 'канал', type: c.type ?? 0,
+           parsed: (c.messages || []).map((l, k) => parseLine(l, k)) };
+}
+
+function normChat(o, fi, fname) {
+  const um = {};
+  (o.users || []).forEach(u => um[u.id] = { ...u, av: b2u(u.avatar_base64) });
+  const plain = t => t.replace(/<@!?(\d+)>/g, (_, id) => '@' + (um[id] ? dn(um[id]) : 'участник'));
+  const parsed = (o.messages || []).map((m, i) => {
+    const a = m.author || {}, u = um[a.id] || {};
+    const g = a.global_name || u.global_name, un = a.username || u.username, name = g || un || '?';
+    const d = m.timestamp ? new Date(m.timestamp) : null, text = m.content || '';
+    return {
+      idx: i, date: d && !isNaN(d) ? d : null, user: name, sub: g && un ? un : '',
+      key: String(a.id || name), avatar: u.av || b2u(a.avatar_base64) || null,
+      text, plain: plain(text), um, edited: !!m.edited_timestamp, embeds: m.embeds || [],
+      atts: (m.attachments || []).map(x => ({
+        name: x.filename || 'file', size: x.size, url: x.url, blob: b2u(x.base64),
+        img: (x.content_type || '').startsWith('image/') || IMG_RE.test(x.filename || '')
+      }))
+    };
+  });
+  return { id: fi + '_' + (o.channel_id || fname), name: o.channel_name || 'чат ' + (o.channel_id || fname), type: 0, parsed };
+}
+
+const supported = o => o && typeof o === 'object' && (Array.isArray(o.channels) || Array.isArray(o.messages));
+
+function buildGuild(items) {
+  const channels = []; let gname = null;
+  items.forEach((it, fi) => {
+    const o = it.obj;
+    if (Array.isArray(o.channels)) { gname = gname || o.name; o.channels.forEach((c, i) => channels.push(normGuildChannel(c, fi, i))); }
+    else channels.push(normChat(o, fi, it.name));
+  });
+  return { name: gname || (channels.length === 1 ? channels[0].name : 'Архив'), channels };
+}
+
+function renderText(t, um) {
   let s = esc(t);
   s = s.replace(/&lt;@&amp;\d+&gt;/g, '<span class="mention">@роль</span>');
-  s = s.replace(/&lt;@!?\d+&gt;/g, '<span class="mention">@участник</span>');
+  s = s.replace(/&lt;@!?(\d+)&gt;/g, (_, id) => `<span class="mention">@${um && um[id] ? esc(dn(um[id])) : 'участник'}</span>`);
   s = s.replace(/@(everyone|here)\b/g, '<span class="mention">@$1</span>');
   s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
   return s;
 }
 
-const isImg = u => /\.(gif|png|jpe?g|webp)(\?\S*)?$/i.test(u) || /cdn\.discordapp\.com\/attachments\//.test(u);
+const isImgUrl = u => /\.(gif|png|jpe?g|webp)(\?\S*)?$/i.test(u) || /cdn\.discordapp\.com\/attachments\//.test(u);
+const prevBtn = (src, label) => `<div class="stk"><button class="sbtn" data-src="${esc(src)}">${label}</button><div class="spreview" hidden></div></div>`;
 function stickerBlock(t) {
-  const urls = [...new Set((t.match(/https?:\/\/\S+/g) || []).filter(isImg))];
-  return urls.map(u => `<div class="stk"><button class="sbtn" data-src="${esc(u)}">🖼 Показать стикер</button><div class="spreview" hidden></div></div>`).join('');
+  const urls = [...new Set((t.match(/https?:\/\/\S+/g) || []).filter(isImgUrl))];
+  return urls.map(u => prevBtn(u, '🖼 Показать стикер')).join('');
 }
 
+function attHTML(m) {
+  return m.atts.map(a => {
+    if (a.img && a.blob) return `<div class="att"><a href="${a.blob}" target="_blank" rel="noopener"><img class="aimg" loading="lazy" src="${a.blob}" alt="${esc(a.name)}"></a></div>`;
+    if (a.img && a.url) return prevBtn(a.url, '🖼 Показать ' + esc(a.name));
+    const label = `${VID_RE.test(a.name) ? '🎞' : '📎'} ${esc(a.name)} (${fmtSize(a.size)})`;
+    if (a.blob) return `<div class="att"><a class="file" href="${a.blob}" download="${esc(a.name)}">${label}</a></div>`;
+    if (a.url) return `<div class="att"><a class="file" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${label}</a></div>`;
+    return `<div class="att"><span class="file">${label}</span></div>`;
+  }).join('');
+}
+const embHTML = m => m.embeds.filter(e => e && e.url).map(e =>
+  `<div class="emb">🔗 <a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.title || e.url)}</a></div>`).join('');
+
+const avatarHTML = (name, key, src, cls) => src
+  ? `<img class="avatar ${cls}" src="${src}" alt="">`
+  : `<div class="avatar ${cls}" style="background:${hsl(key, 42)}">${esc(name[0].toUpperCase())}</div>`;
+
 function msgHTML(m, compact) {
+  const hasExtra = m.atts.length || m.embeds.length;
   const body = (m.text.trim()
-    ? `<div class="content">${renderText(m.text)}</div>`
-    : `<div class="content empty">[пустое сообщение / вложение]</div>`) + stickerBlock(m.text);
-  if (compact) {
-    return `<div class="msg compact"><span class="ctime">${fmtTime(m.date)}</span><div class="mbody">${body}</div></div>`;
-  }
+    ? `<div class="content">${renderText(m.text, m.um)}${m.edited ? '<span class="edited">(изм.)</span>' : ''}</div>`
+    : (hasExtra ? '' : `<div class="content empty">[пустое сообщение / вложение]</div>`))
+    + stickerBlock(m.text) + attHTML(m) + embHTML(m);
+  if (compact) return `<div class="msg compact"><span class="ctime">${fmtTime(m.date)}</span><div class="mbody">${body}</div></div>`;
   return `<div class="msg">
-    <div class="avatar" style="background:${hsl(m.user, 42)}">${esc(m.user[0].toUpperCase())}</div>
+    ${avatarHTML(m.user, m.key, m.avatar, '')}
     <div class="mbody">
-      <div class="head"><span class="uname" style="color:${hsl(m.user, 72)}">${esc(m.user)}</span><span class="time">${fmtDate(m.date)} ${fmtTime(m.date)}</span></div>
+      <div class="head"><span class="uname" style="color:${hsl(m.key, 72)}">${esc(m.user)}</span>${m.sub ? `<span class="usub">@${esc(m.sub)}</span>` : ''}<span class="time">${fmtDate(m.date)} ${fmtTime(m.date)}</span></div>
       ${body}
     </div></div>`;
 }
@@ -223,7 +299,7 @@ function msgHTML(m, compact) {
 function renderChannels() {
   const text = guild.channels.filter(c => c.type === 0);
   const voice = guild.channels.filter(c => c.type !== 0);
-  const item = c => `<button class="ch ${c.id === activeId ? 'on' : ''}" data-id="${c.id}">
+  const item = c => `<button class="ch ${c.id === activeId ? 'on' : ''}" data-id="${esc(c.id)}">
       <span class="ico">${c.type === 0 ? '#' : '🔊'}</span>
       <span class="name">${esc(c.name)}</span>
       <span class="cnt">${c.parsed.length || ''}</span></button>`;
@@ -245,7 +321,6 @@ function renderChannelFeed() {
   $('#chName').textContent = ch.name;
   $('#chIco').textContent = ch.type === 0 ? '#' : '🔊';
   $('#chInfo').textContent = `${ch.parsed.length} сообщений`;
-  const q = '';
   const list = ch.parsed;
   let html = '', prevDay = '', prev = null;
   for (const m of list) {
@@ -254,13 +329,11 @@ function renderChannelFeed() {
       html += `<div class="divider"><span>${fmtDate(m.date)}</span></div>`;
       prevDay = day; prev = null;
     }
-    const compact = prev && m.date && prev.date && prev.user === m.user && (m.date - prev.date) < 7 * 60 * 1000;
+    const compact = prev && m.date && prev.date && prev.key === m.key && (m.date - prev.date) < 7 * 60 * 1000;
     html += `<div data-mi="${m.idx}">${msgHTML(m, compact)}</div>`;
     prev = m;
   }
-  if (!list.length) {
-    html = `<div class="empty-state">${q ? 'Ничего не найдено' : (ch.type !== 0 ? 'Голосовой канал — здесь нет сообщений' : 'В этом канале пока нет сообщений')}</div>`;
-  }
+  if (!list.length) html = `<div class="empty-state">${ch.type !== 0 ? 'Голосовой канал — здесь нет сообщений' : 'В этом канале пока нет сообщений'}</div>`;
   $('#feed').innerHTML = html;
   if (pendingJump !== null) {
     const el = document.querySelector(`#feed [data-mi="${pendingJump}"]`);
@@ -278,7 +351,10 @@ function renderSearch(q) {
   const ql = q.toLowerCase();
   const hits = [];
   for (const ch of guild.channels) if (ch.type === 0)
-    for (const m of ch.parsed) if ((m.text + ' ' + m.user).toLowerCase().includes(ql)) hits.push({ ch, m });
+    for (const m of ch.parsed) {
+      const hay = m.plain + ' ' + m.user + ' ' + m.sub + ' ' + m.atts.map(a => a.name).join(' ');
+      if (hay.toLowerCase().includes(ql)) hits.push({ ch, m });
+    }
   hits.sort((a, b) => (b.m.date || 0) - (a.m.date || 0));
   const shown = hits.slice(0, 300);
   $('#chName').textContent = 'Поиск по всем каналам';
@@ -287,9 +363,9 @@ function renderSearch(q) {
   $('#feed').innerHTML =
     `<div class="sres-head">Найдено: ${hits.length}${hits.length > 300 ? ' (показаны первые 300)' : ''}</div>` +
     (shown.length ? shown.map(({ ch, m }) => `
-      <div class="sres" data-ch="${ch.id}" data-mi="${m.idx}">
-        <div class="sres-meta"># ${esc(ch.name)} · ${esc(m.user)} · ${fmtDate(m.date)} ${fmtTime(m.date)}</div>
-        <div class="content">${hl(m.text, q)}</div>
+      <div class="sres" data-ch="${esc(ch.id)}" data-mi="${m.idx}">
+        <div class="sres-meta"># ${esc(ch.name)} · ${esc(m.user)}${m.sub ? ' @' + esc(m.sub) : ''} · ${fmtDate(m.date)} ${fmtTime(m.date)}</div>
+        <div class="content">${hl(m.plain || m.atts.map(a => '📎 ' + a.name).join(', '), q)}</div>
       </div>`).join('') : `<div class="empty-state">Ничего не найдено</div>`);
   $('#feed').scrollTop = 0;
   $('#feed').querySelectorAll('.sres').forEach(el => el.onclick = () => {
@@ -301,29 +377,31 @@ function renderSearch(q) {
 
 function openChannel(id) {
   activeId = id;
-  const ch = guild.channels.find(c => c.id === id);
-  $('#chName').textContent = ch.name;
-  $('#chIco').textContent = ch.type === 0 ? '#' : '🔊';
-  $('#chInfo').textContent = `${ch.parsed.length} сообщений`;
   $('#q').value = '';
   renderChannels();
   renderFeed();
 }
 
 function renderMembers() {
-  const counts = {};
-  for (const ch of guild.channels) if (ch.type === 0) for (const m of ch.parsed) counts[m.user] = (counts[m.user] || 0) + 1;
-  const users = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  $('#members').innerHTML = `<div class="mhead">Участники — ${users.length}</div>` + users.map(([u, n]) =>
-    `<div class="mem"><div class="avatar sm" style="background:${hsl(u, 42)}">${esc(u[0].toUpperCase())}</div>
-     <span style="color:${hsl(u, 72)}">${esc(u)}</span><small>${n}</small></div>`).join('');
+  const map = new Map();
+  for (const ch of guild.channels) if (ch.type === 0) for (const m of ch.parsed) {
+    let e = map.get(m.key);
+    if (!e) map.set(m.key, e = { name: m.user, sub: m.sub, key: m.key, avatar: m.avatar, n: 0 });
+    e.n++; if (!e.avatar && m.avatar) e.avatar = m.avatar;
+  }
+  const users = [...map.values()].sort((a, b) => b.n - a.n);
+  $('#members').innerHTML = `<div class="mhead">Участники — ${users.length}</div>` + users.map(e =>
+    `<div class="mem" title="${esc(e.name)}${e.sub ? ' @' + esc(e.sub) : ''}">${avatarHTML(e.name, e.key, e.avatar, 'sm')}
+     <span style="color:${hsl(e.key, 72)}">${esc(e.name)}</span><small>${e.n}</small></div>`).join('');
 }
 
-function init() {
-  for (const ch of guild.channels) ch.parsed = (ch.messages || []).map((l, i) => ({ ...parse(l), idx: i }));
-  const name = guild.name || 'Сервер';
+function init(items) {
+  guild = buildGuild(items);
+  if (!guild.channels.length) { alert('В файле нет каналов или сообщений'); return; }
+  const name = guild.name;
   $('#guildName').textContent = name;
   $('#srvIcon').textContent = name[0].toUpperCase();
+  document.title = name + ' — Messages Archive';
   $('#drop').style.display = 'none';
   $('#app').style.display = 'flex';
   renderMembers();
@@ -331,24 +409,54 @@ function init() {
   openChannel(first.id);
 }
 
-function loadFile(f) {
-  const r = new FileReader();
-  r.onload = () => {
-    try { guild = JSON.parse(r.result); }
-    catch (e) { alert('Не удалось прочитать JSON'); return; }
-    init();
-  };
-  r.readAsText(f);
+async function loadFiles(files) {
+  const items = [];
+  for (const f of files) {
+    try { const obj = JSON.parse(await f.text()); if (supported(obj)) items.push({ name: f.name, obj }); }
+    catch (e) { alert('Не удалось прочитать JSON: ' + f.name); }
+  }
+  if (items.length) init(items);
+  else if (files.length) alert('Неизвестный формат файла');
 }
 
-$('#file').onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+async function fetchJson(url) {
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const obj = JSON.parse(await r.text());
+    return supported(obj) ? { name: decodeURIComponent(url.split('/').pop()), obj } : null;
+  } catch (e) { return null; }
+}
+
+async function autoLoad() {
+  const abs = n => new URL(n, location.href).href;
+  let urls = new Set(new URLSearchParams(location.search).getAll('file').map(abs));
+  if (!urls.size) {
+    try {
+      const r = await fetch('./', { cache: 'no-store' });
+      if ((r.headers.get('content-type') || '').includes('text/html')) {
+        new DOMParser().parseFromString(await r.text(), 'text/html').querySelectorAll('a[href]').forEach(a => {
+          const u = new URL(a.getAttribute('href'), location.href);
+          if (u.origin === location.origin && /\.json$/i.test(u.pathname) && !SKIP.test(u.pathname)) urls.add(u.href);
+        });
+      }
+    } catch (e) {}
+  }
+  if (!urls.size) DEFAULTS.forEach(n => urls.add(abs(n)));
+  const items = (await Promise.all([...urls].sort().map(fetchJson))).filter(Boolean);
+  if (items.length) { init(items); return; }
+  $('#autoMsg').textContent = location.protocol === 'file:'
+    ? 'Автозагрузка не работает при открытии с диска (file://). Запусти через локальный сервер или выбери файл вручную.'
+    : 'JSON рядом с index.html не найден. Выбери файл вручную.';
+}
+
+$('#file').onchange = e => e.target.files.length && loadFiles([...e.target.files]);
 window.addEventListener('dragover', e => { e.preventDefault(); $('#drop').classList.add('over'); });
 window.addEventListener('dragleave', e => { if (!e.relatedTarget) $('#drop').classList.remove('over'); });
 window.addEventListener('drop', e => {
   e.preventDefault();
   $('#drop').classList.remove('over');
-  const f = e.dataTransfer.files[0];
-  if (f) loadFile(f);
+  if (e.dataTransfer.files.length) loadFiles([...e.dataTransfer.files]);
 });
 $('#q').addEventListener('input', () => guild && renderFeed());
 const closePanels = () => {
@@ -378,21 +486,24 @@ $('#feed').addEventListener('click', e => {
   const b = e.target.closest('.sbtn');
   if (!b) return;
   const box = b.parentElement.querySelector('.spreview');
+  b.dataset.label = b.dataset.label || b.textContent;
   if (!box.dataset.loaded) {
     const img = new Image();
-    img.alt = 'стикер'; img.loading = 'lazy'; img.className = 'simg';
+    img.alt = 'изображение'; img.loading = 'lazy'; img.className = 'simg';
     img.onerror = () => { box.innerHTML = '<div class="serr">Не загрузилось: ссылка устарела или изображение заблокировано</div>'; };
     img.src = b.dataset.src;
     box.appendChild(img);
     box.dataset.loaded = '1';
   }
   box.hidden = !box.hidden;
-  b.textContent = box.hidden ? '🖼 Показать стикер' : '🙈 Скрыть стикер';
+  b.textContent = box.hidden ? b.dataset.label : '🙈 Скрыть';
 });
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && guild) { e.preventDefault(); $('#q').focus(); $('#q').select(); }
   if (e.key === 'Escape' && document.activeElement === $('#q') && $('#q').value) { $('#q').value = ''; renderFeed(); }
 });
+
+autoLoad();
 </script>
 </body>
 </html>
